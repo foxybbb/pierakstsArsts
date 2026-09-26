@@ -1,0 +1,30 @@
+# Часовой пояс для расписания и отображения дат
+timezone: Europe/Riga
+
+# Время ежедневных проверок (ЧЧ:ММ). Можно переопределить env CHECK_TIMES="08:05,12:05"
+# Точного расписания открытия новых слотов клиники не публикуют, поэтому по умолчанию —
+# несколько проверок в рабочее время. Команда /history в боте покажет, когда реально
+# случаются изменения, после чего расписание можно сузить.
+check_times: ["07:05", "08:35", "10:05", "13:05", "16:05", "20:05"]
+
+# Доп. частые проверки (0 = выключено). Например 30 = каждые 30 мин с 7:00 до 22:00.
+# Полезно первую неделю, чтобы выяснить, в какое время обновляется база.
+interval_minutes: 0
+interval_hours: [7, 22]
+
+# auto = HTTP API, при ошибке — headless Chromium; http; browser
+fetch_mode: auto
+
+# О каких типах времени уведомлять: gov (valsts apmaksāts), paid (maksas)
+notify_types: [gov, paid]
+notify_lost: true          # сообщать, когда свободные времена пропали
+notify_unchanged: false    # слать сводку даже без изменений
+
+watches:
+  - name: Asinsvadu ķirurgs — RAKUS Gaiļezers
+    url: https://eveselibaspunkts.lv/lv/Booking/AvailableTimeSlots?InstitutionCode=010000234&ServiceCode=168&Hierarchy=institution.service
+    doctors: ["Ivanova Patrīcija"]   # пусто/нет ключа = все врачи на странице
+
+  - name: Urologs — Vidzemes slimnīca
+    url: https://eveselibaspunkts.lv/lv/Booking/AvailableTimeSlots?InstitutionCode=250000092.01&ServiceCode=13&Hierarchy=institution.service
+    doctors: ["Vējiņš Mareks"]
