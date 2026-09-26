@@ -590,18 +590,35 @@ def command_loop() -> None:
             time.sleep(10)
 
 
+HEARTBEAT = Path("/tmp/heartbeat")
+
+
 def main() -> None:
     cfg = load_config()
     log.info("watches: %d, times: %s, interval: %s min", len(cfg["watches"]), cfg["check_times"], cfg["interval_minutes"])
-    if os.getenv("ENABLE_COMMANDS", "1") == "1":
-        threading.Thread(target=command_loop, daemon=True).start()
-    threading.Thread(target=weekly_loop, daemon=True).start()
     if os.getenv("RUN_ON_START", "1") == "1":
-        text = check(cfg, reason="startup")
-        if text:
-            send(text)
-    scheduler_loop()
+        try:
+            text = check(cfg, reason="startup")
+            if text:
+                send(text)
+        except Exception:
+            log.exception("startup check failed")
 
+    loops = [scheduler_loop, weekly_loop]
+    if os.getenv("ENABLE_COMMANDS", "1") == "1":
+        loops.append(command_loop)
+    threads = [threading.Thread(target=f, name=f.__name__, daemon=True) for f in loops]
+    for t in threads:
+        t.start()
+
+    # watchdog: если какой-то поток умер — выходим, Docker (restart: always) перезапустит контейнер
+    while True:
+        dead = [t.name for t in threads if not t.is_alive()]
+        if dead:
+            log.critical("threads died: %s — exiting for restart", dead)
+            os._exit(1)
+        HEARTBEAT.touch()
+        time.sleep(30)
 
 if __name__ == "__main__":
     main()

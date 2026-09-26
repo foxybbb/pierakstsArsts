@@ -2,8 +2,19 @@ services:
   doctor-monitor:
     build: .
     container_name: doctor-monitor
-    restart: unless-stopped
+    restart: always          # перезапуск при падении и автостарт вместе с Docker после перезагрузки
     env_file: .env
     volumes:
       - ./config:/config:ro
       - ./data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,sys,time; sys.exit(time.time()-os.path.getmtime('/tmp/heartbeat') > 120)"]
+      interval: 60s
+      timeout: 10s
+      start_period: 120s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
