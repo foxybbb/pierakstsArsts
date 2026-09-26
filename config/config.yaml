@@ -30,10 +30,4 @@ weekly_report:
 # Начальный список врачей. Используется только при первом запуске (копируется в data/watches.json),
 # дальше список меняется через бота: /add, /list, /remove.
 watches:
-  - name: Asinsvadu ķirurgs — RAKUS Gaiļezers
-    url: https://eveselibaspunkts.lv/lv/Booking/AvailableTimeSlots?InstitutionCode=010000234&ServiceCode=168&Hierarchy=institution.service
-    doctors: ["Ivanova Patrīcija"]   # пусто/нет ключа = все врачи на странице
 
-  - name: Urologs — Vidzemes slimnīca
-    url: https://eveselibaspunkts.lv/lv/Booking/AvailableTimeSlots?InstitutionCode=250000092.01&ServiceCode=13&Hierarchy=institution.service
-    doctors: ["Vējiņš Mareks"]
