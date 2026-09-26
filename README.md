@@ -1,27 +1,41 @@
-# Мониторинг записи к врачу (eveselibaspunkts.lv → Telegram)
+# Ārsta pieraksta monitorings (eveselibaspunkts.lv → Telegram)
 
-По расписанию проверяет ближайшее свободное время (valsts apmaksāts / maksas) у выбранных врачей
-и шлёт сообщение в Telegram, когда время появляется или освобождается более раннее.
+Pēc grafika pārbauda tuvāko brīvo pieraksta laiku (valsts apmaksāts / maksas) pie izvēlētajiem ārstiem
+un nosūta ziņu uz Telegram, kad parādās brīvs laiks vai atbrīvojas agrāks laiks.
 
-## Запуск
-1. Создайте бота у @BotFather, напишите ему любое сообщение, узнайте chat_id:
-   `https://api.telegram.org/bot<TOKEN>/getUpdates` → `message.chat.id`.
-2. `cp .env.example .env` и заполните токен и chat_id.
-3. Врачей и время проверок настройте в `config/config.yaml` (правки подхватываются без рестарта).
-4. `docker compose up -d --build`, логи: `docker compose logs -f`.
+## Palaišana
+1. Izveidojiet botu pie @BotFather, uzrakstiet tam jebkādu ziņu un uzziniet chat_id:
+   `https://api.telegram.org/bot<TOKEN>/getUpdates` → `message.chat.id`
+   (grupai ID ir negatīvs, piemēram, `-5262503769`).
+2. `cp .env.example .env` un aizpildiet tokenu un chat_id.
+3. Ārstus un pārbaužu laikus norādiet `config/config.yaml` (izmaiņas tiek nolasītas bez restartēšanas).
+4. `docker compose up -d --build`, žurnāli: `docker compose logs -f`.
 
-## Как это работает
-Страница — Vue-приложение; данные приходят из `POST /lv/Booking/ListSpecialistCalendars`
-(нужен Laravel CSRF: cookie `XSRF-TOKEN` → заголовок `X-XSRF-TOKEN`). Скрипт делает это обычным HTTP;
-если не получилось (например, Cloudflare), автоматически использует headless Chromium (Playwright).
+## Kā tas darbojas
+Lapa ir Vue lietotne; dati nāk no `POST /lv/Booking/ListSpecialistCalendars`
+(nepieciešams Laravel CSRF: sīkdatne `XSRF-TOKEN` → galvene `X-XSRF-TOKEN`). Skripts to dara ar parastu HTTP;
+ja neizdodas (piemēram, Cloudflare), automātiski tiek izmantots headless Chromium (Playwright).
 
-## Команды бота
-`/check` — проверить сейчас, `/status`, `/history` — в какие часы/дни реально меняется база, `/schedule`.
+## Paziņojumi
+Pēc noklusējuma ziņa tiek sūtīta **tikai tad, kad parādās pieraksta laiks** (vai agrāks laiks).
+Papildu ziņas var ieslēgt `config/config.yaml`:
 
-## Когда обновляется база
-Клиники не публикуют время открытия новых слотов. RAKUS записывает в пределах скользящего окна
-~6 месяцев, т.е. новые государственные слоты открываются постепенно; отменённые записи
-освобождаются в любой момент. Поэтому: первую неделю поставьте `interval_minutes: 30`,
-затем посмотрите `/history` и оставьте в `check_times` только «горячие» часы.
+| Iestatījums | Nozīme |
+|---|---|
+| `notify_types` | laika veidi: `gov` (valsts apmaksāts), `paid` (maksas) |
+| `notify_lost` | ziņot, kad brīvie laiki pazuduši |
+| `notify_unchanged` | sūtīt kopsavilkumu arī bez izmaiņām |
+| `notify_startup` | sūtīt kopsavilkumu pirmajā palaišanā |
+| `notify_errors` | sūtīt datu ielādes kļūdas (citādi tikai žurnālā) |
 
-Данные: `data/state.json` (последнее состояние), `data/history.jsonl` (все изменения с временем).
+## Bota komandas
+`/check` — pārbaudīt tagad (rāda arī kļūdas), `/status` — pēdējais stāvoklis,
+`/history` — kurās stundās/dienās datubāze reāli mainās, `/schedule` — pārbaužu grafiks.
+
+## Kad atjaunojas datubāze
+Iestādes nepublicē jauno laiku atvēršanas grafiku. RAKUS pieraksta ~6 mēnešu slīdošā periodā,
+tātad jauni valsts apmaksātie laiki atveras pakāpeniski; atceltie pieraksti atbrīvojas jebkurā brīdī.
+Tāpēc pirmo nedēļu iestatiet `interval_minutes: 30`, pēc tam apskatiet `/history`
+un `check_times` atstājiet tikai "karstās" stundas.
+
+Dati: `data/state.json` (pēdējais stāvoklis), `data/history.jsonl` (visas izmaiņas ar laiku).
