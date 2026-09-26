@@ -8,7 +8,9 @@ un nosūta ziņu uz Telegram, kad parādās brīvs laiks vai atbrīvojas agrāks
    `https://api.telegram.org/bot<TOKEN>/getUpdates` → `message.chat.id`
    (grupai ID ir negatīvs, piemēram, `-5262503769`).
 2. `cp .env.example .env` un aizpildiet tokenu un chat_id.
-3. Ārstus un pārbaužu laikus norādiet `config/config.yaml` (izmaiņas tiek nolasītas bez restartēšanas).
+3. Pārbaužu laikus norādiet `config/config.yaml` (izmaiņas tiek nolasītas bez restartēšanas).
+   `watches` no konfigurācijas tiek izmantots tikai pirmajā palaišanā (nokopēts uz `data/watches.json`),
+   tālāk ārstu sarakstu pārvalda bots.
 4. `docker compose up -d --build`, žurnāli: `docker compose logs -f`.
 
 ## Kā tas darbojas
@@ -29,8 +31,23 @@ Papildu ziņas var ieslēgt `config/config.yaml`:
 | `notify_errors` | sūtīt datu ielādes kļūdas (citādi tikai žurnālā) |
 
 ## Bota komandas
-`/check` — pārbaudīt tagad (rāda arī kļūdas), `/status` — pēdējais stāvoklis,
-`/history` — kurās stundās/dienās datubāze reāli mainās, `/schedule` — pārbaužu grafiks.
+| Komanda | Nozīme |
+|---|---|
+| `/add <saite> [ārsta vārds]` | pievienot ārstu; bez vārda bots piedāvās izvēli ar pogām |
+| `/list` | uzraudzīto ārstu saraksts |
+| `/remove <N>` | noņemt ārstu pēc numura no `/list` |
+| `/check` | pārbaudīt tagad (rāda arī kļūdas) |
+| `/status` | pēdējais stāvoklis |
+| `/week` | nedēļas atskaite tagad |
+| `/history` | kurās stundās/dienās datubāze reāli mainās |
+| `/schedule` | pārbaužu grafiks |
+
+Saite — lapa "Izvēlieties pieraksta laiku" no eveselibaspunkts.lv, piemēram
+`https://eveselibaspunkts.lv/lv/Booking/AvailableTimeSlots?InstitutionCode=…&ServiceCode=…`.
+
+## Nedēļas atskaite
+Reizi nedēļā (pēc noklusējuma pirmdienā 09:00, `weekly_report` konfigurācijā) bots nosūta atskaiti:
+vai pēdējās 7 dienās pie katra ārsta parādījās pieraksti, un pašreizējos tuvākos laikus.
 
 ## Kad atjaunojas datubāze
 Iestādes nepublicē jauno laiku atvēršanas grafiku. RAKUS pieraksta ~6 mēnešu slīdošā periodā,
@@ -38,4 +55,4 @@ tātad jauni valsts apmaksātie laiki atveras pakāpeniski; atceltie pieraksti a
 Tāpēc pirmo nedēļu iestatiet `interval_minutes: 30`, pēc tam apskatiet `/history`
 un `check_times` atstājiet tikai "karstās" stundas.
 
-Dati: `data/state.json` (pēdējais stāvoklis), `data/history.jsonl` (visas izmaiņas ar laiku).
+Dati: `data/watches.json` (ārstu saraksts), `data/state.json` (pēdējais stāvoklis), `data/history.jsonl` (visas izmaiņas ar laiku).
