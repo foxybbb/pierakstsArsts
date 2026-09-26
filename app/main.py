@@ -54,6 +54,8 @@ def load_config() -> dict:
     cfg.setdefault("notify_types", ["gov", "paid"])
     cfg.setdefault("notify_unchanged", False)
     cfg.setdefault("notify_lost", True)
+    cfg.setdefault("notify_startup", True)
+    cfg.setdefault("notify_errors", True)
     if not cfg.get("watches"):
         raise SystemExit("config: 'watches' is empty")
     return cfg
@@ -182,10 +184,10 @@ def check(cfg: dict, reason: str = "schedule", force_report: bool = False) -> st
     parts = []
     if alerts:
         parts.append(f"🔔 <b>Изменения в записи</b> ({stamp})\n\n" + "\n\n".join(alerts))
-    if first_run or force_report or (cfg["notify_unchanged"] and not alerts):
+    if force_report or (first_run and cfg["notify_startup"]) or (cfg["notify_unchanged"] and not alerts):
         hdr = "🚀 Мониторинг запущен" if first_run else "📋 Текущее состояние"
         parts.append(f"{hdr} ({stamp})\n\n" + ("\n\n".join(summary) or "нет данных"))
-    if errors:
+    if errors and (force_report or cfg["notify_errors"]):
         parts.append("\n".join(errors))
     log.info("check (%s): %d doctors, %d alerts, %d errors", reason, len(summary), len(alerts), len(errors))
     return "\n\n".join(parts)

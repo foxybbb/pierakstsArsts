@@ -17,8 +17,10 @@ fetch_mode: auto
 
 # О каких типах времени уведомлять: gov (valsts apmaksāts), paid (maksas)
 notify_types: [gov, paid]
-notify_lost: true          # сообщать, когда свободные времена пропали
+notify_lost: false         # сообщать, когда свободные времена пропали
 notify_unchanged: false    # слать сводку даже без изменений
+notify_startup: false      # слать сводку при первом запуске
+notify_errors: false       # слать ошибки загрузки (иначе только в лог; /check покажет их всегда)
 
 watches:
   - name: Asinsvadu ķirurgs — RAKUS Gaiļezers
